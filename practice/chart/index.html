@@ -6,8 +6,134 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <meta name="format-detection" content="telephone=no">
 <title>Map</title>
+<style type="text/css">
+#container {
+	min-width: 310px;
+	max-width: 800px;
+	height: 400px;
+	margin: 0 auto
+}
+</style>
 </head>
 <body>
+<div id="container"> </div>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.11/handlebars.min.js"></script>
+<script type="text/javascript">
+var chart = Highcharts.chart('container', {
+    title: {
+        text: '연도별 매매/전세 가격 변동'
+    },
 
+    subtitle: {
+        text: 'Source: sampleData_rental_real / sampleData_rental_trend / sampleData_sale_real / sampleData_sale_trend(.json)'
+    },
+
+    yAxis: {
+        title: {
+            text: '가격'
+        }
+    },
+
+    xAxis: {
+        title: {
+            text: '연도'
+        }
+    },
+
+    legend: {
+        layout: 'vertical',
+        align: 'right',
+        verticalAlign: 'middle'
+    }
+});
+
+var saleChart = function( priceData, cData ){
+	chart.xAxis[0].setCategories(cData);
+    chart.addSeries({
+		name: '매매 가격',
+		data: priceData
+	});
+}
+var rentalChart = function( depositData, cData ){
+	chart.xAxis[0].setCategories(cData);
+    chart.addSeries({
+		name: '전세 가격',
+		data: depositData
+	});
+}
+var saleChartTrend = function( priceData, cData ){
+	chart.xAxis[0].setCategories(cData);
+    chart.addSeries({
+		name: '매매 가격 시세',
+		data: priceData
+	});
+}
+var rentalChartTrend = function( depositData, cData ){
+	chart.xAxis[0].setCategories(cData);
+    chart.addSeries({
+		name: '전세 가격 시세',
+		data: depositData
+	});
+}
+
+var allChart = function(url, type) {
+    $.ajax({
+        url: url,
+        success: function (res) {
+            var price = [];
+            var year = [];
+            var deposit = [];
+            $.map(res, function(value){
+                $.map(value, function(value2, key2){
+                    (key2 == 'price') ? price.push(value2) : null;
+                    (key2 == 'year') ? year.push(value2) : null;
+                    (key2 == 'deposit') ? deposit.push(value2) : null;
+                });
+            });
+
+            switch( type){
+                case 'price' : 
+                    saleChart(price, year);
+                    saleChartTrend(price, year);
+                    break;
+                case 'deposit' : 
+                    rentalChart(deposit, year);
+                    rentalChartTrend(deposit, year);
+                    break;
+            }
+        }
+    });
+    chart.redraw();
+}
+
+allChart('json/sampleData_sale_real.json', 'price'); 
+allChart('json/sampleData_rental_real.json', 'deposit'); 
+allChart('json/sampleData_sale_trend.json', 'price'); 
+allChart('json/sampleData_rental_trend.json', 'deposit'); 
+
+/*
+var price = [];
+var year = [];
+$.ajax({
+    type:"GET",
+   url: 'json/sampleData_sale_real.json',
+   success: function (res) {
+      $.map(res, function(value){
+         $.map(value, function(value2, key2){
+         if(key2 != 'price' && key2 != 'year')   continue;
+
+         switch(key2){
+            case 'price':   price.push(value2);   break;
+            case 'year':   year.push(value2);   break;
+         }
+         });
+      });
+      initChart(price, year);
+   }
+});
+*/
+</script>
 </body>
 </html>
